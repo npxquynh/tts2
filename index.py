@@ -1,4 +1,6 @@
 import pdb
+import time
+import os
 
 NEWS_FILE = './news.txt'
 IDF_FILE = './news.idf.txt'
@@ -13,27 +15,37 @@ class Index():
         self._idf = dict()
         self.id_map = []
         self.all_news = []
+        self.vocab = []
+        self.position_map = dict()
         self.tf = []
         self.tfidf = []
         self.unit_length = []
         self.ii = dict() # inverted index
 
+        self.saved_score = []
+
         self.index()
 
-    def index(self):
-        # initialization
+    def print_time(self, msg, t):
+        print '%s ====================== %f' % (msg, t)
+
+    def index(self):        
         self.read_N_news()
+        
         self.read_idf()
 
         self.calculate_tfidf()
+
         self.calculate_unit_length()
+
         self.inverted_index()
 
         # query_index instead of id
         for index in range(1, self.N):
             self.linear_merge(index)
             self.analyze_matching_set(index)
-            self.write_result(index)
+
+        self.write_result(index)
 
     def read_idf(self):
         self._idf = dict()
@@ -54,24 +66,27 @@ class Index():
 
     def read_N_news(self):
         with open(NEWS_FILE) as f:
-            # trick to map between zero-based array with one-based news index
-            # self.id_map.append(0)
-            # self.all_news.append([])
-
             # real work starts here
             for i in range(self.N):
                 line = f.readline().strip().lower().split()
                 self.id_map.append(line[0])
                 self.all_news.append(line[1:])
+    
+    def build_vocabulary(self):
+        count = 0
+        for news in self.all_news:
+            for token in set(news):
+                if token not in self.vocab:
+                    self.vocab.append(token)
+                    self.position_map[token] = count
+                    count += 1
 
     def calculate_tfidf(self):
         for (i, news) in enumerate(self.all_news):
+            _tfidf = dict()
             for token in set(news):
-                _tf[token] = news.count(token)
-            self.tf.append(_tf)
-
-            for token in _tf.keys():
-                _tfidf = _tf[token] * self.idf(token)
+                tf = news.count(token)
+                _tfidf[token] = tf * self.idf(token)
             self.tfidf.append(_tfidf)
 
     def calculate_unit_length(self):
@@ -92,44 +107,33 @@ class Index():
                 self.ii[token].append((index, count))
 
     def linear_merge(self, query_index):
-        query_tf = self.tfidf[query_index]
+        query_tfidf = self.tfidf[query_index]
 
-        l = len(query_tf)
-        max_doc_index = query_index - 1
+        # question
+        max_doc_index = query_index
 
-        self.matching_set = [[0 for i in range(l)] for j in range(max_doc_index + 1)]
+        self.matching_set = [0 for j in range(max_doc_index)]
         
-        for (t_index, token) in enumerate(query_tf.keys()):
+        for (token, qw) in query_tfidf.iteritems():
             _ii = self.ii[token]
-
             for (doc_index, count) in _ii:
-                if doc_index <= max_doc_index:
-                    try:
-                        self.matching_set[doc_index][t_index] = count
-                    except IndexError:
-                        pdb.set_trace()
-                        a = 2
+                if doc_index < max_doc_index:
+                    self.matching_set[doc_index] += count * qw
                 else:
                     break
 
     def analyze_matching_set(self, query_index):
         self.score = []
-        row = len(self.matching_set)
-        col = len(self.matching_set[0])
+        col = len(self.matching_set)
 
         query_tfidf_array = self.tfidf[query_index].values()
-        # query_tokens_array = self.tfidf[query_index].keys()
-        # pdb.set_trace()
 
-        for doc_index in range(row):
-            summation = 0
-            # pdb.set_trace()
-            for j in range(col):
-                # summation += query_tf_array[j] * self.matching_set[doc_index][j]
-                summation += query_tfidf_array[j] * self.matching_set[doc_index][j]
-
+        for doc_index in range(col):
+            summation = self.matching_set[doc_index]
             _score = summation / (self.unit_length[query_index] * self.unit_length[doc_index])
             self.score.append((doc_index, _score))
+
+        self.saved_score.append(self.get_most_similar_news())
 
     def get_most_similar_news(self):
         sorted_score = sorted(self.score, key=lambda x:x[1], reverse=True)
@@ -149,10 +153,14 @@ class Index():
         return sorted_score[_id]
 
     def write_result(self, query_index):
-        id_and_score = self.get_most_similar_news()
+        with open(INDEX_FILE, 'a') as output:
+            for (query_index, id_and_score) in enumerate(self.saved_score):
+                if id_and_score[1] >= 0.2:
+                    output.write('%d %d\n' % (query_index + 2, int (id_and_score[0]) + 1))
 
-        if id_and_score[1] >= 0.2:
-            with open(INDEX_FILE, 'a') as output:
-                # output.write('%s %s\n' % (query_index, id_and_score))
-                output.write('%d %d\n' % (query_index + 1, int (id_and_score[0]) + 1))
-                # output.write('%d %d - %f\n' % (query_index + 1, int (id_and_score[0]) + 1, id_and_score[1]))
+if __name__ == '__main__':
+    if os.path.isfile('./index.top'):
+        os.remove('./index.top')
+
+    N = 5000
+    index = Index(N)
