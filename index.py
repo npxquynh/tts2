@@ -66,10 +66,12 @@ class Index():
 
     def calculate_tfidf(self):
         for (i, news) in enumerate(self.all_news):
-            _tf = {token:news.count(token) for token in set(news)}
+            for token in set(news):
+                _tf[token] = news.count(token)
             self.tf.append(_tf)
 
-            _tfidf = {i:(_tf[i]*self.idf(i)) for i in _tf.keys()}
+            for token in _tf.keys():
+                _tfidf = _tf[token] * self.idf(token)
             self.tfidf.append(_tfidf)
 
     def calculate_unit_length(self):
