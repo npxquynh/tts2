@@ -1,2 +1,35 @@
+ dot_product
 100 - 13s
 1000 - real 1113.822    user 1097.363   sys 13.903  pcpu 99.77
+
+*** dot_product_imp
+100 - 11s
+500 - 79s
+1000 - real 248.258 user 234.425    sys 12.513  pcpu 99.47
+
+*** dot_product_imp & read_news_imp
+100 - 3.3
+500 - real 26.124   user 25.217 sys 0.146   pcpu 97.09
+1000 - real 138.382 user 135.901    sys 0.284   pcpu 98.41
+
+1000 - opennx - real 330.875    user 329.063    sys 0.744       pcpu 99.67
+
+*****
+100 - my machine - 0m26s
+1000 - my machine - 2m39s
+1150 - my machine - 4m
+
+***** update_unit_length
+1000 - my machine - 2m14s
+
+**** save result of dw
+100 - my machine 0m0.64
+1000 - my machine 0m14s
+10000 - my machine 20m18s
+
+********* index
+100 - 0m21s
+1000 - 0m5.32s
+10000 - 
+
+

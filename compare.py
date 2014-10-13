@@ -1,4 +1,5 @@
-BRUTE_FILE = './brute.top'
+# FILE = './brute.top'
+FILE = './index.top'
 METRIC_FILE = './pairs.ref'
 
 if __name__ == '__main__':
@@ -13,7 +14,7 @@ if __name__ == '__main__':
 
             metric[id_1] = id_2
     
-    with open(BRUTE_FILE) as f:
+    with open(FILE) as f:
         for line in f:
             temp = line.strip().split()
             id_1 = int(temp[0])
@@ -23,7 +24,7 @@ if __name__ == '__main__':
 
     # compare
     error_count = 0
-    for i in range(1001):
+    for i in range(100):
         if metric[i] != predicted[i]:
             error_count += 1
             print '%d - %d - %d' % (i, metric[i], predicted[i])
