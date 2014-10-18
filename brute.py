@@ -24,8 +24,9 @@ class Brute():
 
     def brute(self):
         # initialization
-        self.read_news_into_buffer()
-        self.read_news_imp(0)
+        # self.read_news_into_buffer()
+        # self.read_news_imp(0)
+        self.read_news(0)
         self.update_vocabulary()
         self.compute_qw()
         self.update_unit_length()
@@ -38,8 +39,8 @@ class Brute():
             self.update_dw()
 
             # read more news
-            # self.read_news(i)
-            self.read_news_imp(i)
+            self.read_news(i)
+            # self.read_news_imp(i)
             self.update_vocabulary()
             self.compute_qw()
             self.update_unit_length()
@@ -237,12 +238,17 @@ class Brute():
                 except IndexError:  
                     summation = summation
 
-            unit_length_1 = self.unit_length[self._id]
-            unit_length_2 = self.unit_length[_id]
+                unit_length_1 = self.unit_length[self._id]
+                unit_length_2 = self.unit_length[_id]
 
             _score = 0 
             try:
                 _score = (summation * 1.0) / (unit_length_1 * unit_length_2)
+
+                if self._id == '8' and _id == '2':
+                    print summation
+                    print unit_length_1 * unit_length_2
+                    print _score
             except ZeroDivisionError:
                 print "zero division error in dot product"
 
